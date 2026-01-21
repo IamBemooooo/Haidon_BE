@@ -10,4 +10,9 @@
     <PackageReference Include="MediatR" Version="14.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Haidon_BE.Domain\Haidon_BE.Domain.csproj" />
+    <ProjectReference Include="..\Haidon_BE.Infrastructure\Haidon_BE.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>

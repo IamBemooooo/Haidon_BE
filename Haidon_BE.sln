@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36429.23 d17.14
+VisualStudioVersion = 17.14.36429.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Haidon_BE.Api", "Haidon_BE.Api\Haidon_BE.Api.csproj", "{149C214A-B840-4C0A-B5F3-EE6654675AF6}"
 EndProject
@@ -10,8 +10,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Haidon_BE.Domain", "Haidon_BE.Domain\Haidon_BE.Domain.csproj", "{813B36C9-8734-4A1B-9C92-9D97B9C93A50}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Haidon_BE.Infrastructure", "Haidon_BE.Infrastructure\Haidon_BE.Infrastructure.csproj", "{C817244B-1E61-46F7-9170-8706359F642A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Haidon_BE.Shared", "Haidon_BE.Shared\Haidon_BE.Shared.csproj", "{4B2BEA6B-EC75-4ABF-A4B2-289FFE9D88B2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +33,6 @@ Global
 		{C817244B-1E61-46F7-9170-8706359F642A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C817244B-1E61-46F7-9170-8706359F642A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C817244B-1E61-46F7-9170-8706359F642A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4B2BEA6B-EC75-4ABF-A4B2-289FFE9D88B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4B2BEA6B-EC75-4ABF-A4B2-289FFE9D88B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4B2BEA6B-EC75-4ABF-A4B2-289FFE9D88B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4B2BEA6B-EC75-4ABF-A4B2-289FFE9D88B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

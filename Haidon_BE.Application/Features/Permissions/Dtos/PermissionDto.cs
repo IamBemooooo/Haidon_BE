@@ -1,0 +1,10 @@
+using System;
+
+namespace Haidon_BE.Application.Features.Permissions.Dtos;
+
+public class PermissionDto
+{
+    public Guid Id { get; set; }
+    public string Key { get; set; } = string.Empty;
+    public string? Description { get; set; }
+}
