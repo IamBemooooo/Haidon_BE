@@ -1,3 +1,4 @@
+using Haidon_BE.Api.Hubs;
 using Haidon_BE.Application;
 using Haidon_BE.Infrastructure;
 using Haidon_BE.Infrastructure.Persistence;
@@ -14,6 +15,18 @@ builder.Services.AddSwaggerGen();
 // Wire application and infrastructure layers
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddScoped<SeedPermissionService>();
+
+// SignalR + Redis backplane (?? scale)
+var redis = builder.Configuration.GetConnectionString("Redis");
+if (!string.IsNullOrWhiteSpace(redis))
+{
+    builder.Services.AddSignalR().AddStackExchangeRedis(redis);
+}
+else
+{
+    builder.Services.AddSignalR();
+}
 
 var app = builder.Build();
 
@@ -32,5 +45,6 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatHub>("/chatHub");
 
 app.Run();

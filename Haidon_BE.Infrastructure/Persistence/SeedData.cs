@@ -15,6 +15,7 @@ public static class SeedData
         using var scope = services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var hasher = scope.ServiceProvider.GetRequiredService<PasswordHasher>();
+        var permissionSeeder = scope.ServiceProvider.GetService<SeedPermissionService>();
 
         try
         {
@@ -119,6 +120,12 @@ public static class SeedData
             }
 
             await context.SaveChangesAsync();
+
+            // Seed permissions and assign to admin
+            if (permissionSeeder != null)
+            {
+                await permissionSeeder.SeedAsync();
+            }
         }
         catch
         {
