@@ -18,6 +18,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<SeedPermissionService>();
 
 // SignalR + Redis backplane (?? scale)
+// - AddSignalR registers SignalR services. N?u có Redis connection string, ta ??ng ký StackExchange Redis backplane
+//   ?? các instance c?a ?ng d?ng có th? chia s? messages (khi scale out)
 var redis = builder.Configuration.GetConnectionString("Redis");
 if (!string.IsNullOrWhiteSpace(redis))
 {
@@ -42,8 +44,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// IMPORTANT: n?u b?n có c?u hình authentication (JWT, cookie...), c?n g?i UseAuthentication() tr??c UseAuthorization().
+// ChatHub s? d?ng Context.User ?? l?y userId t? claim; n?u không có middleware authentication thì Context.User có th? r?ng.
+
 app.UseAuthorization();
 
+// Map controllers và map hub.
+// MapHub<ChatHub>("/chatHub") ??ng ký endpoint WebSocket/LongPolling cho SignalR hub.
+// Client s? k?t n?i t?i /chatHub ?? b?t ??u session SignalR.
 app.MapControllers();
 app.MapHub<ChatHub>("/chatHub");
 
