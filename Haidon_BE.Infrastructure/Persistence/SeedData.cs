@@ -20,7 +20,7 @@ public static class SeedData
         try
         {
             await context.Database.MigrateAsync();
-
+            var now = DateTime.UtcNow;
             // Ensure Admin role exists or update it
             var adminRole = await context.Roles
                 .FirstOrDefaultAsync(r => r.Key == UserRoleKey.Admin);
@@ -59,12 +59,48 @@ public static class SeedData
                 await context.SaveChangesAsync();
             }
 
+            // Seed 4 users with role User
+            var userSeedList = new[]
+            {
+                new { Email = "user1@haidon.local", DisplayName = "User 1" },
+                new { Email = "user2@haidon.local", DisplayName = "User 2" },
+                new { Email = "user3@haidon.local", DisplayName = "User 3" },
+                new { Email = "user4@haidon.local", DisplayName = "User 4" }
+            };
+            foreach (var u in userSeedList)
+            {
+                var exist = await context.Users.Include(x => x.Profile).FirstOrDefaultAsync(x => x.Email == u.Email);
+                if (exist is null)
+                {
+                    var userId = Guid.NewGuid();
+                    var user = new User
+                    {
+                        Id = userId,
+                        Email = u.Email,
+                        PasswordHash = hasher.HashPassword("User@123"),
+                        RoleId = userRole.Id,
+                        Status = UserStatus.Active,
+                        CreatedAt = now,
+                        LastLoginAt = null,
+                        Provider = UserProvider.Local,
+                        ProviderId = null
+                    };
+                    var profile = new UserProfile
+                    {
+                        UserId = userId,
+                        DisplayName = u.DisplayName,
+                        UpdatedAt = now
+                    };
+                    await context.Users.AddAsync(user);
+                    await context.UserProfiles.AddAsync(profile);
+                }
+            }
+            await context.SaveChangesAsync();
+
             // Ensure Admin user exists or update it
             var adminUser = await context.Users
                 .Include(u => u.Profile)
                 .FirstOrDefaultAsync(u => u.Email == AdminEmail);
-
-            var now = DateTime.UtcNow;
 
             if (adminUser is null)
             {

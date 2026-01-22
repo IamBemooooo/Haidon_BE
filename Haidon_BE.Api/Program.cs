@@ -1,7 +1,10 @@
-using Haidon_BE.Api.Hubs;
+ï»¿using Haidon_BE.Api.Hubs;
 using Haidon_BE.Application;
 using Haidon_BE.Infrastructure;
 using Haidon_BE.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,19 +20,62 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<SeedPermissionService>();
 
-// SignalR + Redis backplane (?? scale)
-// - AddSignalR registers SignalR services. N?u có Redis connection string, ta ??ng ký StackExchange Redis backplane
-//   ?? các instance c?a ?ng d?ng có th? chia s? messages (khi scale out)
-var redis = builder.Configuration.GetConnectionString("Redis");
-if (!string.IsNullOrWhiteSpace(redis))
+// Add JWT authentication for SignalR
+builder.Services.AddAuthentication(options =>
 {
-    builder.Services.AddSignalR().AddStackExchangeRedis(redis);
-}
-else
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
 {
-    builder.Services.AddSignalR();
-}
+    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    {
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("THIS_IS_A_DEMO_SECRET_CHANGE_ME_TO_A_LONG_RANDOM_VALUE"))
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chatHub"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
 
+// Add CORS for frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy => policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+    );
+});
+
+// SignalR + Redis backplane (?? scale)
+// - AddSignalR registers SignalR services. N?u cÃ³ Redis connection string, ta ??ng kÃ½ StackExchange Redis backplane
+//   ?? cÃ¡c instance c?a ?ng d?ng cÃ³ th? chia s? messages (khi scale out)
+//var redis = builder.Configuration.GetConnectionString("Redis");
+//if (!string.IsNullOrWhiteSpace(redis))
+//{
+//    builder.Services.AddSignalR().AddStackExchangeRedis(redis);
+//}
+//else
+//{
+//    builder.Services.AddSignalR();
+//}
+builder.Services.AddSignalR();
 var app = builder.Build();
 
 // Ensure database is migrated and seeded on startup (non-breaking)
@@ -44,14 +90,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// IMPORTANT: n?u b?n có c?u hình authentication (JWT, cookie...), c?n g?i UseAuthentication() tr??c UseAuthorization().
-// ChatHub s? d?ng Context.User ?? l?y userId t? claim; n?u không có middleware authentication thì Context.User có th? r?ng.
-
+app.UseCors("AllowFrontend");
+app.UseAuthentication(); // ThÃªm dÃ²ng nÃ y Ä‘á»ƒ báº­t xÃ¡c thá»±c
 app.UseAuthorization();
-
-// Map controllers và map hub.
-// MapHub<ChatHub>("/chatHub") ??ng ký endpoint WebSocket/LongPolling cho SignalR hub.
-// Client s? k?t n?i t?i /chatHub ?? b?t ??u session SignalR.
 app.MapControllers();
 app.MapHub<ChatHub>("/chatHub");
 
