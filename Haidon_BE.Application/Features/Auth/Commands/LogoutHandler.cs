@@ -1,10 +1,9 @@
-using Haidon_BE.Application.Features.Auth.Commands;
 using Haidon_BE.Domain.Entities;
 using Haidon_BE.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Haidon_BE.Application.Features.Auth;
+namespace Haidon_BE.Application.Features.Auth.Commands;
 
 public class LogoutHandler : IRequestHandler<LogoutCommand, Unit>
 {

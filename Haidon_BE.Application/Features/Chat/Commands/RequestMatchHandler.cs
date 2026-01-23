@@ -4,7 +4,7 @@ using Haidon_BE.Domain.Entities;
 using Haidon_BE.Infrastructure.Persistence;
 using Haidon_BE.Application.Features.Chat.Commands;
 using Haidon_BE.Application.Features.Chat.Dtos;
-using Haidon_BE.Application.Services;
+using Haidon_BE.Application.Services.Realtime;
 
 namespace Haidon_BE.Application.Features.Chat.Handlers;
 
@@ -12,14 +12,15 @@ public class RequestMatchHandler : IRequestHandler<RequestMatchCommand, MatchRes
 {
     private static readonly object _lock = new();
     private static readonly List<WaitingUser> waitingUsers = new();
-    private static readonly Dictionary<string, List<string>> roomConnections = new();
     private readonly ApplicationDbContext _dbContext;
     private readonly IChatHub _chatHub;
+    private readonly IConnectionManager _connectionManager;
 
-    public RequestMatchHandler(ApplicationDbContext dbContext, IChatHub chatHub)
+    public RequestMatchHandler(ApplicationDbContext dbContext, IChatHub chatHub, IConnectionManager connectionManager)
     {
         _dbContext = dbContext;
         _chatHub = chatHub;
+        _connectionManager = connectionManager;
     }
 
     public async Task<MatchResult> Handle(RequestMatchCommand request, CancellationToken cancellationToken)
@@ -77,14 +78,13 @@ public class RequestMatchHandler : IRequestHandler<RequestMatchCommand, MatchRes
         await _dbContext.ChatParticipants.AddRangeAsync(new[] { p1, p2 }, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
         var roomId = room.Id.ToString();
-        lock (_lock)
-        {
-            roomConnections[roomId] = new List<string> { connectionId, match.ConnectionId };
-        }
-        // Notify both users matched (pass matchInfo as null for now)
+        // Add both users to connection manager
+        _connectionManager.AddConnection(userId, connectionId);
+        _connectionManager.AddConnection(match.UserId, match.ConnectionId);
+
         await _chatHub.JoinRoomAsync(request.ConnectionId, roomId);
         await _chatHub.JoinRoomAsync(match.ConnectionId, roomId);
-
+        // Notify both users matched (pass matchInfo as null for now)
         await _chatHub.NotifyMatchedAsync(roomId, userId.ToString());
         await _chatHub.NotifyMatchedAsync(roomId, match.UserId.ToString());
         return new MatchResult

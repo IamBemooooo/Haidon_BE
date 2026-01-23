@@ -1,4 +1,3 @@
-using Haidon_BE.Application.Features.Auth.Commands;
 using Haidon_BE.Application.Features.Auth.Dtos;
 using Haidon_BE.Domain.Entities;
 using Haidon_BE.Infrastructure.Persistence;
@@ -6,7 +5,7 @@ using Haidon_BE.Infrastructure.Security;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Haidon_BE.Application.Features.Auth;
+namespace Haidon_BE.Application.Features.Auth.Commands;
 
 public class RefreshTokenHandler : IRequestHandler<RefreshTokenCommand, TokenResponseDto>
 {

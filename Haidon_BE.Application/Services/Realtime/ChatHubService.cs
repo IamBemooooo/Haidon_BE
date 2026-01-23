@@ -1,7 +1,15 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 
-namespace Haidon_BE.Application.Services;
+namespace Haidon_BE.Application.Services.Realtime;
+
+public interface IChatHub
+{
+    Task NotifyMatchedAsync(string roomId, string userId);
+    Task PushMessageAsync(string roomId, string userId, string message);
+    Task NotifyLeaveRoomAsync(string roomId, string userId);
+    Task JoinRoomAsync(string connectionId, string roomId);
+}
 
 public class ChatHubService : IChatHub
 {

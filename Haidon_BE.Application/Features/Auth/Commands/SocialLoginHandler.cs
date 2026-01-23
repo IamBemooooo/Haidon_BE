@@ -1,4 +1,3 @@
-using Haidon_BE.Application.Features.Auth.Commands;
 using Haidon_BE.Application.Features.Auth.Dtos;
 using Haidon_BE.Domain.Dtos;
 using Haidon_BE.Domain.Entities;
@@ -8,7 +7,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Haidon_BE.Infrastructure.Security;
 
-namespace Haidon_BE.Application.Features.Auth;
+namespace Haidon_BE.Application.Features.Auth.Commands;
 
 public class SocialLoginHandler : IRequestHandler<SocialLoginCommand, LoginResponseDto>
 {

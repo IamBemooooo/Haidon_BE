@@ -4,7 +4,7 @@ using Haidon_BE.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Haidon_BE.Application.Features.Chat.Commands;
 using Haidon_BE.Application.Features.Chat.Dtos;
-using Haidon_BE.Application.Services;
+using Haidon_BE.Application.Services.Realtime;
 
 namespace Haidon_BE.Application.Features.Chat.Handlers;
 
