@@ -7,5 +7,5 @@ public class LeaveRoomCommand : IRequest<LeaveRoomResult>
 {
     public Guid UserId { get; set; }
     public string ConnectionId { get; set; } = string.Empty;
-    public string RoomId { get; set; } = string.Empty;
+    public Guid RoomId { get; set; }
 }

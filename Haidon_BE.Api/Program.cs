@@ -1,5 +1,5 @@
-﻿using Haidon_BE.Api.Hubs;
-using Haidon_BE.Application;
+﻿using Haidon_BE.Application;
+using Haidon_BE.Application.Services;
 using Haidon_BE.Infrastructure;
 using Haidon_BE.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -19,6 +19,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<SeedPermissionService>();
+builder.Services.AddScoped<IChatHub, ChatHubService>();
 
 // Add JWT authentication for SignalR
 builder.Services.AddAuthentication(options =>

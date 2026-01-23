@@ -4,15 +4,18 @@ using Haidon_BE.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Haidon_BE.Application.Features.Chat.Commands;
 using Haidon_BE.Application.Features.Chat.Dtos;
+using Haidon_BE.Application.Services;
 
 namespace Haidon_BE.Application.Features.Chat.Handlers;
 
 public class SendMessageHandler : IRequestHandler<SendMessageCommand, SendMessageResult>
 {
     private readonly ApplicationDbContext _dbContext;
-    public SendMessageHandler(ApplicationDbContext dbContext)
+    private readonly IChatHub _chatHub;
+    public SendMessageHandler(ApplicationDbContext dbContext, IChatHub chatHub)
     {
         _dbContext = dbContext;
+        _chatHub = chatHub;
     }
 
     public async Task<SendMessageResult> Handle(SendMessageCommand request, CancellationToken cancellationToken)
@@ -35,6 +38,10 @@ public class SendMessageHandler : IRequestHandler<SendMessageCommand, SendMessag
         };
         await _dbContext.Messages.AddAsync(msg, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // Push message to chat hub
+        await _chatHub.PushMessageAsync(request.RoomId, request.UserId.ToString(), request.Message);
+
         return new SendMessageResult
         {
             Success = true,
