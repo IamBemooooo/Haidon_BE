@@ -25,4 +25,5 @@ public class User : ISoftDelete, IAuditable
     public virtual ICollection<ChatParticipant> ChatParticipants { get; set; } = new List<ChatParticipant>();
     public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+    public virtual ICollection<UserMedia> UserMedias { get; set; } = new List<UserMedia>();
 }

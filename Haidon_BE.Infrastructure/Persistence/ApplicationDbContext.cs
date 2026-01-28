@@ -18,6 +18,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<ChatParticipant> ChatParticipants => Set<ChatParticipant>();
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<UserMedia> UserMedias => Set<UserMedia>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,6 +37,12 @@ public class ApplicationDbContext : DbContext
             .HasOne(up => up.User)
             .WithOne(u => u.Profile)
             .HasForeignKey<UserProfile>(up => up.UserId);
+
+        // One-to-many User-UserMedia
+        modelBuilder.Entity<UserMedia>()
+            .HasOne(um => um.User)
+            .WithMany(u => u.UserMedias)
+            .HasForeignKey(um => um.UserId);
 
         // Relationships per DBML
         modelBuilder.Entity<User>()
