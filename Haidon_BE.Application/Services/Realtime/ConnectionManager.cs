@@ -13,6 +13,8 @@ namespace Haidon_BE.Application.Services.Realtime
         void RemoveConnection(string connectionId);
         List<string> GetConnections(Guid userId);
         Guid? GetUserId(string connectionId);
+        ConcurrentDictionary<Guid, HashSet<string>> GetUserConnections();
+        ConcurrentDictionary<string, Guid> GetConnectionUsers();
     }
 
     public class ConnectionManager : IConnectionManager
@@ -65,6 +67,16 @@ namespace Haidon_BE.Application.Services.Realtime
             return _connectionUsers.TryGetValue(connectionId, out var userId)
                 ? userId
                 : null;
+        }
+
+        public ConcurrentDictionary<Guid, HashSet<string>> GetUserConnections()
+        {
+            return _userConnections;
+        }
+
+        public ConcurrentDictionary<string, Guid> GetConnectionUsers()
+        {
+            return _connectionUsers;
         }
     }
 }

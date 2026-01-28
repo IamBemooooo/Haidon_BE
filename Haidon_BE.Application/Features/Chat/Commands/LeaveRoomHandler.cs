@@ -1,7 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using Haidon_BE.Infrastructure.Persistence;
 using Haidon_BE.Application.Features.Chat.Dtos;
 using Haidon_BE.Application.Services.Realtime;
+using Microsoft.EntityFrameworkCore;
 
 namespace Haidon_BE.Application.Features.Chat.Commands;
 
@@ -23,6 +24,16 @@ public class LeaveRoomHandler : IRequestHandler<LeaveRoomCommand, LeaveRoomResul
         _connectionManager.RemoveConnection(request.ConnectionId);
         // Push leave room notification
         await _chatHub.NotifyLeaveRoomAsync(request.RoomId.ToString(), request.UserId.ToString());
+
+        var roomId = request.RoomId;
+
+        var room = await _dbContext.ChatRooms.FirstOrDefaultAsync(r => r.Id == roomId, cancellationToken);
+        if (room != null)
+        {
+            room.IsDeleted = true;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
         return await Task.FromResult(new LeaveRoomResult { Success = true });
     }
 }

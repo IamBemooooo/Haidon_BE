@@ -1,15 +1,7 @@
-﻿using Haidon_BE.Application.Features.Chat.Commands;
-using Haidon_BE.Application.Features.Chat.Queries;
-using Haidon_BE.Domain.Models;
+﻿using Haidon_BE.Application.Features.Chat.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Haidon_BE.Application.Services.Realtime
 {
@@ -32,15 +24,17 @@ namespace Haidon_BE.Application.Services.Realtime
 
             _connectionManager.AddConnection(userId, connectionId);
 
+            var A = _connectionManager.GetConnectionUsers;
+            var B = _connectionManager.GetUserConnections;
+
             // Lấy các roomId mà user đang ở và phòng đó có ít nhất 2 người
-            var activeRooms = await _mediator.Send(new GetActiveRoomsQuery { UserId = userId });
+            var activeRooms = await _mediator.Send(new GetUserRoomsWithPartnerQuery { UserId = userId });
+            var onlineUsers = activeRooms.Where(r => _connectionManager.GetConnections(r.PartnerUserId).Count() > 0).Select(r => r.PartnerUserId).Distinct().ToList();
+            var onlineRooms = activeRooms.Where(r => _connectionManager.GetConnections(r.PartnerUserId).Count() > 0).Select(r => r.RoomId).Distinct().ToList();
             foreach (var roomId in activeRooms)
             {
                 await Groups.AddToGroupAsync(connectionId, roomId.ToString());
-
-
-                await Clients.Caller.SendAsync("UsersOnline", roomId);
-                await Clients.Group(roomId.ToString()).SendAsync("UserOnline", userId);
+                await Clients.OthersInGroup(roomId.ToString()).SendAsync("UserOnline", userId);
             }
 
             await base.OnConnectedAsync();
@@ -56,7 +50,7 @@ namespace Haidon_BE.Application.Services.Realtime
             if (userId.HasValue && !_connectionManager.GetConnections(userId.Value).Any())
             {
                 // Lấy các roomId mà user đang ở và phòng đó có ít nhất 2 người
-                var activeRooms = await _mediator.Send(new GetActiveRoomsQuery { UserId = userId.Value });
+                var activeRooms = await _mediator.Send(new GetUserRoomsWithPartnerQuery { UserId = userId.Value });
                 foreach (var roomId in activeRooms)
                 {
                     await Clients.Group(roomId.ToString()).SendAsync("UserOffline", userId.Value);

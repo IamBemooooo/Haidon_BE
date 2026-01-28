@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Haidon_BE.Application.Features.Chat.Dtos;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Haidon_BE.Application.Features.Chat.Queries
 {
-    public class GetActiveRoomsQuery : IRequest<List<Guid>>
+    public class GetUserRoomsWithPartnerQuery : IRequest<List<RoomWithParnerDto>>
     {
         public Guid UserId { get; set; }
     }

@@ -34,9 +34,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("logout")]
-    public async Task<ActionResult<ApiResponse<bool>>> Logout([FromBody] Guid userId, CancellationToken cancellationToken)
+    public async Task<ActionResult<ApiResponse<bool>>> Logout([FromBody] LogoutRequestDto request, CancellationToken cancellationToken)
     {
-        await _mediator.Send(new LogoutCommand(userId), cancellationToken);
+        await _mediator.Send(new LogoutCommand(request), cancellationToken);
         return Ok(ApiResponse<bool>.SuccessResponse(true, "Đăng xuất thành công"));
     }
 

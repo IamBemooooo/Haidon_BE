@@ -16,13 +16,15 @@ public class LogoutHandler : IRequestHandler<LogoutCommand, Unit>
 
     public async Task<Unit> Handle(LogoutCommand request, CancellationToken cancellationToken)
     {
-        var user = await _dbContext.Users.FindAsync(new object[] { request.UserId }, cancellationToken);
+        var user = await _dbContext.Users.FindAsync(new object[] { request.request.userId }, cancellationToken);
         if (user is null)
         {
             return Unit.Value;
         }
 
-        var tokens = _dbContext.RefreshTokens.Where(rt => rt.UserId == user.Id && !rt.IsRevoked && rt.ExpiredAt > DateTime.UtcNow);
+        // Use mapped properties instead of IsRevoked
+        var tokens = _dbContext.RefreshTokens
+            .Where(rt => rt.UserId == user.Id && rt.RevokedAt == null && rt.ExpiredAt > DateTime.UtcNow);
 
         await tokens.ForEachAsync(rt => rt.RevokedAt = DateTime.UtcNow, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
