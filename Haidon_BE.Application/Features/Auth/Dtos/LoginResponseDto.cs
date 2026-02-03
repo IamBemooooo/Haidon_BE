@@ -7,6 +7,5 @@ public readonly record struct LoginResponseDto(
     Guid UserId,
     string Email,
     string? DisplayName,
-    string? AvatarUrl,
     List<string> Permissions
 );

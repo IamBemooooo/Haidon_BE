@@ -8,5 +8,4 @@ public class RequestMatchCommand : IRequest<MatchResult>
 {
     public Guid UserId { get; set; }
     public string ConnectionId { get; set; } = string.Empty;
-    public MatchCriteria Criteria { get; set; } = new();
 }

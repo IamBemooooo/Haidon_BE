@@ -44,16 +44,30 @@ namespace Haidon_BE.Api.Controllers
                 "avatars");
             Directory.CreateDirectory(uploadRoot);
 
-            int order = 0;
-            foreach (var file in request.Files)
+            foreach (var imageReq in request.Files)
             {
-                if (file.Length == 0)
+                var file = imageReq.File;
+                if (file == null || file.Length == 0)
                     continue;
                 if (file.Length > MaxFileSize)
                     return BadRequest("Ảnh vượt quá 10MB");
                 if (!file.ContentType.StartsWith("image/"))
                     return BadRequest("File không phải hình ảnh");
-                var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+                // Xác định định dạng thực tế bằng ImageSharp
+                IImageFormat? actualFormat = null;
+                try
+                {
+                    using var image = await Image.LoadAsync(file.OpenReadStream());
+                    actualFormat = image.Metadata.DecodedImageFormat;
+                }
+                catch
+                {
+                    return BadRequest("File không phải hình ảnh hợp lệ hoặc định dạng không hỗ trợ");
+                }
+                if (actualFormat == null)
+                    return BadRequest("Không xác định được định dạng ảnh");
+                var extension = $".{actualFormat.FileExtensions.FirstOrDefault()}";
                 if (!ImageExtensions.Contains(extension))
                     return BadRequest("Định dạng ảnh không được hỗ trợ");
 
@@ -67,8 +81,16 @@ namespace Haidon_BE.Api.Controllers
                 }
                 else
                 {
+                    file.OpenReadStream().Position = 0; // reset lại stream
                     using var image = await Image.LoadAsync(file.OpenReadStream());
                     await image.SaveAsync(filePath, GetEncoder(extension, 85));
+                }
+
+                // Xóa bản ghi UserMedia cũ cùng userId và order
+                var oldMedia = _dbContext.UserMedias.Where(m => m.UserId == request.UserId && m.Order == imageReq.order);
+                if (oldMedia.Count() > 0)
+                {
+                    _dbContext.UserMedias.RemoveRange(oldMedia);
                 }
 
                 var userMedia = new UserMedia
@@ -76,11 +98,12 @@ namespace Haidon_BE.Api.Controllers
                     Id = Guid.NewGuid(),
                     UserId = request.UserId,
                     Url = $"/uploads/avatars/{fileName}",
-                    Type = MediaType.Image,
-                    Order = order,
+                    Type = (MediaType)imageReq.type,
+                    Order = imageReq.order,
                     CreatedAt = DateTime.UtcNow
                 };
                 _dbContext.UserMedias.Add(userMedia);
+
                 results.Add(new UploadImageResultDto
                 {
                     Id = userMedia.Id,
@@ -89,7 +112,6 @@ namespace Haidon_BE.Api.Controllers
                     Type = userMedia.Type,
                     Order = userMedia.Order
                 });
-                order++;
             }
             await _dbContext.SaveChangesAsync();
             return Ok(results);

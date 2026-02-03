@@ -123,8 +123,6 @@ public static class SeedData
                 {
                     UserId = userId,
                     DisplayName = "Admin",
-                    AnonymousAvatar = null,
-                    RevealedAvatar = null,
                     Bio = null,
                     UpdatedAt = now
                 };

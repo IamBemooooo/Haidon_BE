@@ -18,8 +18,6 @@ public class CreateUserProfileCommandHandler : IRequestHandler<CreateUserProfile
         {
             UserId = request.UserId == Guid.Empty ? Guid.NewGuid() : request.UserId,
             DisplayName = request.DisplayName,
-            AnonymousAvatar = request.AnonymousAvatar,
-            RevealedAvatar = request.RevealedAvatar,
             Bio = request.Bio,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = request.CreatedBy,

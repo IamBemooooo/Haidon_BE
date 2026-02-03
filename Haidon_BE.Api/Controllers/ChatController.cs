@@ -26,14 +26,14 @@ public class ChatController : ControllerBase
     }
 
     [HttpPost("send-message")]
-    public async Task<ActionResult<SendMessageResult>> SendMessage([FromBody] SendMessageCommand command, CancellationToken cancellationToken)
+    public async Task<ActionResult<bool>> SendMessage([FromBody] SendMessageCommand command, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(command, cancellationToken);
         return Ok(result);
     }
 
     [HttpPost("leave-room")]
-    public async Task<ActionResult<LeaveRoomResult>> LeaveRoom([FromBody] LeaveRoomCommand command, CancellationToken cancellationToken)
+    public async Task<ActionResult<bool>> LeaveRoom([FromBody] LeaveRoomCommand command, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(command, cancellationToken);
         return Ok(result);

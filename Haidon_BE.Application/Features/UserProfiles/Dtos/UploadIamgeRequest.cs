@@ -10,6 +10,13 @@ namespace Haidon_BE.Application.Features.UserProfiles.Dtos
     public class UploadIamgeRequest
     {
         public Guid UserId { get; set; }
-        public List<IFormFile> Files { get; set; } = new();
+        public List<ImageRequest> Files { get; set; } = new();
+    }
+
+    public class ImageRequest
+    {
+        public IFormFile File { get; set; } = null!;
+        public int order { get; set; }
+        public int type { get; set; }
     }
 }

@@ -15,11 +15,19 @@ public class GetUserMediaQueryHandler : IRequestHandler<GetUserMediaQuery, List<
 
     public async Task<List<UserMedia>> Handle(GetUserMediaQuery request, CancellationToken cancellationToken)
     {
-        var query = _dbContext.UserMedias.AsQueryable();
-        if (request.UserId.HasValue)
+        try
         {
-            query = query.Where(m => m.UserId == request.UserId.Value);
+            var query = _dbContext.UserMedias.AsQueryable();
+            if (request.UserId.HasValue)
+            {
+                query = query.Where(m => m.UserId == request.UserId.Value);
+            }
+            return await query.OrderBy(m => m.Order).ToListAsync(cancellationToken);
         }
-        return await query.OrderBy(m => m.Order).ToListAsync(cancellationToken);
+        catch (Exception ex)
+        {
+            // Log exception if needed
+            throw new Exception("Có l?i x?y ra khi l?y danh sách media", ex);
+        }
     }
 }

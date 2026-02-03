@@ -3,12 +3,11 @@ using Haidon_BE.Infrastructure.Persistence;
 using Haidon_BE.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Haidon_BE.Application.Features.Chat.Commands;
-using Haidon_BE.Application.Features.Chat.Dtos;
 using Haidon_BE.Application.Services.Realtime;
 
 namespace Haidon_BE.Application.Features.Chat.Handlers;
 
-public class SendMessageHandler : IRequestHandler<SendMessageCommand, SendMessageResult>
+public class SendMessageHandler : IRequestHandler<SendMessageCommand, bool>
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IChatHub _chatHub;
@@ -18,42 +17,38 @@ public class SendMessageHandler : IRequestHandler<SendMessageCommand, SendMessag
         _chatHub = chatHub;
     }
 
-    public async Task<SendMessageResult> Handle(SendMessageCommand request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(SendMessageCommand request, CancellationToken cancellationToken)
     {
-        if (!Guid.TryParse(request.RoomId, out var roomGuid))
-            return new SendMessageResult { Success = false, Error = "Invalid roomId" };
-
-        var isMember = await _dbContext.ChatParticipants.AnyAsync(p => p.ChatRoomId == roomGuid && p.UserId == request.UserId, cancellationToken);
-        if (!isMember)
-            return new SendMessageResult { Success = false, Error = "Not in room" };
-
-        var msg = new Message
+        try
         {
-            Id = Guid.NewGuid(),
-            ChatRoomId = roomGuid,
-            SenderId = request.UserId,
-            Content = request.Message,
-            SentAt = DateTime.UtcNow,
-            IsSystem = false
-        };
-        await _dbContext.Messages.AddAsync(msg, cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+            if (!Guid.TryParse(request.RoomId, out var roomGuid))
+                return false;
 
-        // Push message to chat hub
-        await _chatHub.PushMessageAsync(request.RoomId, request.UserId.ToString(), request.Message);
+            var isMember = await _dbContext.ChatParticipants.AnyAsync(p => p.ChatRoomId == roomGuid && p.UserId == request.UserId, cancellationToken);
+            if (!isMember)
+                return false;
 
-        return new SendMessageResult
-        {
-            Success = true,
-            MessageDto = new
+            var msg = new Message
             {
-                id = msg.Id,
-                chatRoomId = msg.ChatRoomId,
-                senderId = msg.SenderId,
-                content = msg.Content,
-                sentAt = msg.SentAt,
-                isSystem = msg.IsSystem
-            }
-        };
+                Id = Guid.NewGuid(),
+                ChatRoomId = roomGuid,
+                SenderId = request.UserId,
+                Content = request.Message,
+                SentAt = DateTime.UtcNow,
+                IsSystem = false
+            };
+            await _dbContext.Messages.AddAsync(msg, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            // Push message to chat hub
+            await _chatHub.PushMessageAsync(request.RoomId, request.UserId.ToString(), request.Message);
+
+            return true;
+        }
+        catch
+        {
+            // Log exception if needed
+            return false;
+        }
     }
 }

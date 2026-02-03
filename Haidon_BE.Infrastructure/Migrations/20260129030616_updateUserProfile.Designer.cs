@@ -3,6 +3,7 @@ using System;
 using Haidon_BE.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Haidon_BE.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260129030616_updateUserProfile")]
+    partial class updateUserProfile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -61,32 +64,6 @@ namespace Haidon_BE.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ChatRooms");
-                });
-
-            modelBuilder.Entity("Haidon_BE.Domain.Entities.Criteria", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int?>("AgeFrom")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("AgeTo")
-                        .HasColumnType("integer");
-
-                    b.Property<bool?>("IsMale")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("Criteria");
                 });
 
             modelBuilder.Entity("Haidon_BE.Domain.Entities.Message", b =>
@@ -371,17 +348,6 @@ namespace Haidon_BE.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Haidon_BE.Domain.Entities.Criteria", b =>
-                {
-                    b.HasOne("Haidon_BE.Domain.Entities.User", "User")
-                        .WithOne("Criteria")
-                        .HasForeignKey("Haidon_BE.Domain.Entities.Criteria", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Haidon_BE.Domain.Entities.Message", b =>
                 {
                     b.HasOne("Haidon_BE.Domain.Entities.ChatRoom", "ChatRoom")
@@ -486,8 +452,6 @@ namespace Haidon_BE.Infrastructure.Migrations
             modelBuilder.Entity("Haidon_BE.Domain.Entities.User", b =>
                 {
                     b.Navigation("ChatParticipants");
-
-                    b.Navigation("Criteria");
 
                     b.Navigation("Messages");
 

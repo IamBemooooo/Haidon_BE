@@ -3,6 +3,7 @@ using Haidon_BE.Application.Services.Realtime;
 using Haidon_BE.Infrastructure;
 using Haidon_BE.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -90,6 +91,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles(); // serves wwwroot
 
 app.UseCors("AllowFrontend");
 app.UseAuthentication(); // Thêm dòng này để bật xác thực

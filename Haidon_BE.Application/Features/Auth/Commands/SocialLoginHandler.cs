@@ -79,9 +79,14 @@ public class SocialLoginHandler : IRequestHandler<SocialLoginCommand, LoginRespo
             {
                 UserId = userId,
                 DisplayName = socialInfo.DisplayName,
-                RevealedAvatar = socialInfo.AvatarUrl,
                 UpdatedAt = now
             };
+            var criteria = new Criteria
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId
+            };
+            await _dbContext.Criterias.AddAsync(criteria, cancellationToken);
             await _dbContext.Users.AddAsync(user, cancellationToken);
             await _dbContext.UserProfiles.AddAsync(profile, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
@@ -106,7 +111,6 @@ public class SocialLoginHandler : IRequestHandler<SocialLoginCommand, LoginRespo
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         var displayName = user.Profile?.DisplayName;
-        var avatarUrl = user.Profile?.RevealedAvatar ?? user.Profile?.AnonymousAvatar;
         var permissions = user.Role?.RolePermissions
             .Where(rp => rp.Permission != null)
             .Select(rp => rp.Permission!.Key)
@@ -119,7 +123,6 @@ public class SocialLoginHandler : IRequestHandler<SocialLoginCommand, LoginRespo
             user.Id,
             user.Email,
             displayName,
-            avatarUrl,
             permissions
         );
     }

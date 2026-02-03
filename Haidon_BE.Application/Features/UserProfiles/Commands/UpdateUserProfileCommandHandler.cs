@@ -17,8 +17,6 @@ public class UpdateUserProfileCommandHandler : IRequestHandler<UpdateUserProfile
         var profile = await _dbContext.UserProfiles.FirstOrDefaultAsync(p => p.UserId == request.UserId && !p.IsDeleted, cancellationToken);
         if (profile == null) return false;
         profile.DisplayName = request.DisplayName;
-        profile.AnonymousAvatar = request.AnonymousAvatar;
-        profile.RevealedAvatar = request.RevealedAvatar;
         profile.Bio = request.Bio;
         profile.UpdatedAt = DateTime.UtcNow;
         profile.UpdatedBy = request.UpdatedBy;

@@ -3,6 +3,7 @@ using Haidon_BE.Domain.Dtos;
 using Haidon_BE.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Haidon_BE.Application.Features.UserProfiles.Queries;
 
@@ -28,10 +29,19 @@ public class GetUserProfilesQueryHandler : IRequestHandler<GetUserProfilesQuery,
             {
                 UserId = p.UserId,
                 DisplayName = p.DisplayName,
-                AnonymousAvatar = p.AnonymousAvatar,
-                RevealedAvatar = p.RevealedAvatar,
                 Bio = p.Bio,
-                UpdatedAt = p.UpdatedAt
+                UpdatedAt = p.UpdatedAt,
+                Medias = _dbContext.UserMedias
+                    .Where(m => m.UserId == p.UserId)
+                    .OrderBy(m => m.Order)
+                    .Take(3)
+                    .Select(m => new UserMediaDto
+                    {
+                        Id = m.Id,
+                        Url = m.Url,
+                        Type = (int)m.Type,
+                        Order = m.Order
+                    }).ToList()
             })
             .ToListAsync(cancellationToken);
         return new PagedResult<UserProfileDto>

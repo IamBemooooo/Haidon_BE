@@ -1,12 +1,11 @@
 ﻿using MediatR;
 using Haidon_BE.Infrastructure.Persistence;
-using Haidon_BE.Application.Features.Chat.Dtos;
 using Haidon_BE.Application.Services.Realtime;
 using Microsoft.EntityFrameworkCore;
 
 namespace Haidon_BE.Application.Features.Chat.Commands;
 
-public class LeaveRoomHandler : IRequestHandler<LeaveRoomCommand, LeaveRoomResult>
+public class LeaveRoomHandler : IRequestHandler<LeaveRoomCommand, bool>
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IChatHub _chatHub;
@@ -18,22 +17,26 @@ public class LeaveRoomHandler : IRequestHandler<LeaveRoomCommand, LeaveRoomResul
         _connectionManager = connectionManager;
     }
 
-    public async Task<LeaveRoomResult> Handle(LeaveRoomCommand request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(LeaveRoomCommand request, CancellationToken cancellationToken)
     {
-        // Remove connection from manager
-        _connectionManager.RemoveConnection(request.ConnectionId);
-        // Push leave room notification
-        await _chatHub.NotifyLeaveRoomAsync(request.RoomId.ToString(), request.UserId.ToString());
-
-        var roomId = request.RoomId;
-
-        var room = await _dbContext.ChatRooms.FirstOrDefaultAsync(r => r.Id == roomId, cancellationToken);
-        if (room != null)
+        try
         {
-            room.IsDeleted = true;
-            await _dbContext.SaveChangesAsync(cancellationToken);
-        }
+            _connectionManager.RemoveConnection(request.ConnectionId);
+            await _chatHub.NotifyLeaveRoomAsync(request.RoomId.ToString(), request.UserId.ToString());
 
-        return await Task.FromResult(new LeaveRoomResult { Success = true });
+            var roomId = request.RoomId;
+            var room = await _dbContext.ChatRooms.FirstOrDefaultAsync(r => r.Id == roomId, cancellationToken);
+            if (room != null)
+            {
+                room.IsDeleted = true;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+            return true;
+        }
+        catch
+        {
+            // Log exception if needed
+            return false;
+        }
     }
 }

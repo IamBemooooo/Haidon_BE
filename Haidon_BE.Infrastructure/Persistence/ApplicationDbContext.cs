@@ -19,6 +19,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<UserMedia> UserMedias => Set<UserMedia>();
+    public DbSet<Criteria> Criterias => Set<Criteria>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -84,5 +85,10 @@ public class ApplicationDbContext : DbContext
             .HasOne(rt => rt.User)
             .WithMany(u => u.RefreshTokens)
             .HasForeignKey(rt => rt.UserId);
+
+        modelBuilder.Entity<Criteria>()
+            .HasOne(c => c.User)
+            .WithOne(u => u.Criteria)
+            .HasForeignKey<Criteria>(c => c.UserId);
     }
 }
