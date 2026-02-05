@@ -4,6 +4,7 @@ using Haidon_BE.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Haidon_BE.Application.Features.Chat.Commands;
 using Haidon_BE.Application.Services.Realtime;
+using Haidon_BE.Application.Features.Chat.Dtos;
 
 namespace Haidon_BE.Application.Features.Chat.Handlers;
 
@@ -40,8 +41,18 @@ public class SendMessageHandler : IRequestHandler<SendMessageCommand, bool>
             await _dbContext.Messages.AddAsync(msg, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
+            var dto = new MessageDto
+            {
+                Id = msg.Id,
+                ChatRoomId = msg.ChatRoomId,
+                SenderId = msg.SenderId,
+                Content = msg.Content,
+                SentAt = msg.SentAt,
+                IsSystem = msg.IsSystem
+            };
+
             // Push message to chat hub
-            await _chatHub.PushMessageAsync(request.RoomId, request.UserId.ToString(), request.Message);
+            await _chatHub.PushMessageAsync(request.RoomId, dto);
 
             return true;
         }

@@ -91,15 +91,36 @@ public class RequestMatchHandler : IRequestHandler<RequestMatchCommand, MatchRes
             await _dbContext.ChatParticipants.AddRangeAsync(new[] { p1, p2 }, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
             var roomId = room.Id.ToString();
-            // Add both users to connection manager
-            _connectionManager.AddConnection(userId, connectionId);
-            _connectionManager.AddConnection(match.UserId, match.ConnectionId);
 
-            await _chatHub.JoinRoomAsync(request.ConnectionId, roomId);
-            await _chatHub.JoinRoomAsync(match.ConnectionId, roomId);
-            // Notify both users matched (pass matchInfo as null for now)
-            await _chatHub.NotifyMatchedAsync(roomId, userId.ToString());
-            await _chatHub.NotifyMatchedAsync(roomId, match.UserId.ToString());
+            // Join all active connections for both users to the room
+            var userConnections = _connectionManager.GetConnections(userId) ?? new List<string>();
+            var matchConnections = _connectionManager.GetConnections(match.UserId) ?? new List<string>();
+
+            // Ensure the requesting connection is tracked (in case not yet added)
+            if (!userConnections.Contains(connectionId))
+            {
+                userConnections.Add(connectionId);
+            }
+
+            foreach (var conn in userConnections)
+            {
+                await _chatHub.JoinRoomAsync(conn, roomId);
+            }
+            foreach (var conn in matchConnections)
+            {
+                await _chatHub.JoinRoomAsync(conn, roomId);
+            }
+
+            // Notify both users matched to all their connections
+            foreach (var conn in userConnections)
+            {
+                await _chatHub.NotifyMatchedAsync(roomId, userId.ToString());
+            }
+            foreach (var conn in matchConnections)
+            {
+                await _chatHub.NotifyMatchedAsync(roomId, match.UserId.ToString());
+            }
+
             return new MatchResult
             {
                 IsMatched = true,
@@ -107,7 +128,7 @@ public class RequestMatchHandler : IRequestHandler<RequestMatchCommand, MatchRes
                 MatchedConnectionId = match.ConnectionId
             };
         }
-        catch (Exception ex)
+        catch
         {
             // Log exception if needed
             return new MatchResult { IsMatched = false };

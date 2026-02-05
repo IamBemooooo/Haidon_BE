@@ -21,7 +21,6 @@ public class LeaveRoomHandler : IRequestHandler<LeaveRoomCommand, bool>
     {
         try
         {
-            _connectionManager.RemoveConnection(request.ConnectionId);
             await _chatHub.NotifyLeaveRoomAsync(request.RoomId.ToString(), request.UserId.ToString());
 
             var roomId = request.RoomId;

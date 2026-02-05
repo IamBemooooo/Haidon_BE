@@ -24,17 +24,22 @@ namespace Haidon_BE.Application.Services.Realtime
 
             _connectionManager.AddConnection(userId, connectionId);
 
-            var A = _connectionManager.GetConnectionUsers;
-            var B = _connectionManager.GetUserConnections;
-
-            // Lấy các roomId mà user đang ở và phòng đó có ít nhất 2 người
+            // Fetch rooms the user participates in
             var activeRooms = await _mediator.Send(new GetUserRoomsWithPartnerQuery { UserId = userId });
-            var onlineUsers = activeRooms.Where(r => _connectionManager.GetConnections(r.PartnerUserId).Count() > 0).Select(r => r.PartnerUserId).Distinct().ToList();
-            var onlineRooms = activeRooms.Where(r => _connectionManager.GetConnections(r.PartnerUserId).Count() > 0).Select(r => r.RoomId).Distinct().ToList();
-            foreach (var roomId in activeRooms)
+
+            // Add this connection to all its rooms (regardless of partner online state)
+            foreach (var room in activeRooms)
             {
-                await Groups.AddToGroupAsync(connectionId, roomId.ToString());
-                await Clients.OthersInGroup(roomId.ToString()).SendAsync("UserOnline", userId);
+                await Groups.AddToGroupAsync(connectionId, room.RoomId.ToString());
+            }
+
+            // Notify partner online only if partner has any active connections
+            foreach (var room in activeRooms)
+            {
+                if (_connectionManager.GetConnections(room.PartnerUserId).Any())
+                {
+                    await Clients.Group(room.RoomId.ToString()).SendAsync("UserOnline", userId);
+                }
             }
 
             await base.OnConnectedAsync();
@@ -49,11 +54,10 @@ namespace Haidon_BE.Application.Services.Realtime
 
             if (userId.HasValue && !_connectionManager.GetConnections(userId.Value).Any())
             {
-                // Lấy các roomId mà user đang ở và phòng đó có ít nhất 2 người
                 var activeRooms = await _mediator.Send(new GetUserRoomsWithPartnerQuery { UserId = userId.Value });
-                foreach (var roomId in activeRooms)
+                foreach (var room in activeRooms)
                 {
-                    await Clients.Group(roomId.ToString()).SendAsync("UserOffline", userId.Value);
+                    await Clients.Group(room.RoomId.ToString()).SendAsync("UserOffline", userId.Value);
                 }
             }
 
